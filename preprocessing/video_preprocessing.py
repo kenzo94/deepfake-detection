@@ -12,13 +12,9 @@ import random
 import argparse
 from tqdm import tqdm
 from PIL import Image
+import re 
 
 
-def create_folders(dir_path):
-    for folder in ["train", "val", "test", "test_dfdc", "test_celeb", "test_ff"]:
-        path = os.path.join(dir_path, folder)
-        if not os.path.exists(path):
-            os.makedirs(path)
         
 # load DFDC json
 def load_metadata(dir_path):
@@ -48,11 +44,58 @@ def filter_dfdc_files(metadata, num_files):
     random_fake_id = random.sample(fake_ids, k=num_files)
     return random_fake_id+random_real_id
 
+def filter_celeb_files(file_path, num_files):
+    random_id = random.sample(file_path, k=num_files)
+    return random_id
 
+def filter_df_files(dir_path, list_path):
+    fakes = []
+    reals = []
+    dataset = dict()
+    path_raw = []
+    
+    for dir in os.listdir(dir_path):
+        path = os.path.join(dir_path, dir)
+        path_raw.append(path)
+        path_raw.sort()
+        
+    with open(list_path) as file:
+        while True:
+            line = file.readline().replace("\n", "")
+            if not line:
+                break
+            fakes.append(os.path.join(path_raw[0], line))
+            real = re.sub(r"_.*\.mp4", ".mp4", line)
+            reals.append(os.path.join(path_raw[1], real))
+                
+    dataset["fakes"] = fakes
+    dataset["reals"] = reals
+    return dataset
+
+def process_df_videos(dataset, destination, num_frames, img_size):
+    with tqdm(len(dataset["fakes"]+dataset["reals"])) as bar:
+        fake = dataset["fakes"]
+        real = dataset["reals"]
+        for video_path in fake:
+            image_path = os.path.join(destination, "fake")
+            filename = os.path.basename(video_path)
+            if not os.path.exists(image_path):
+                os.makedirs(image_path)
+            process_video(video_path, filename, image_path, num_frames, img_size)
+            bar.update()
+        for video_path in real:
+            image_path = os.path.join(destination, "real")
+            filename = os.path.basename(video_path)
+            if not os.path.exists(image_path):
+                os.makedirs(image_path)
+            process_video(video_path, filename, image_path, num_frames, img_size)
+            bar.update()
+                
+                
 def preprocess_dfdc_files(dir_path, num_frames=1, img_size=(224, 224)):
     # iterate over DFDC dataset
     if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_dfdc", str(img_size[0]))
+        destination_path = os.path.join("data", "test_dfdc")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
             
@@ -74,12 +117,91 @@ def preprocess_dfdc_files(dir_path, num_frames=1, img_size=(224, 224)):
 
 def preprocess_celeb_files(dir_path, num_frames=1, img_size=(224, 224)):
      if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_celeb", str(img_size[0]))
+        destination_path = os.path.join("data", "test_celeb")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
         
+        for dir in os.listdir(dir_path):
+            path = os.path.join(dir_path, dir)
+            if os.path.isdir(path):
+                files = filter_celeb_files(os.listdir(path), 2)
+                with tqdm(len(files)) as bar:
+                    for file in files:
+                        file_path = os.path.join(path, file)
+                        if dir[6:] == "real":
+                            image_path = os.path.join(destination_path, "real")
+                            if not os.path.exists(image_path):
+                                os.makedirs(image_path)
+                            process_video(file_path, file, image_path, num_frames, img_size)
+                        elif dir[6:] == "synthesis":
+                            image_path = os.path.join(destination_path, "fake")
+                            if not os.path.exists(image_path):
+                                os.makedirs(image_path)
+                            process_video(file_path, file, image_path, num_frames, img_size)
+                        bar.update()
+                        
+def preprocess_ff_files(dir_path, num_frames=1, img_size=(224, 224)):
+    if os.path.isdir(dir_path):
+        destination_path = os.path.join("data", "test_ff")
+        if not os.path.exists(destination_path):
+            os.makedirs(destination_path)
+            
+        target_folder = "videos"
+        manipulated_paths = []
+        original_paths = []
+        # Rekursiv alle Unterordner durchsuchen
+        for root, _, files in os.walk(dir_path):
+            for file in files:
+                if file.endswith(".mp4") and target_folder in root:
+                    file_path = os.path.join(root, file)
+                    if "manipulated_sequences" in root:
+                        manipulated_paths.append(file_path)
+                    elif "original_sequences" in root:
+                        original_paths.append(file_path)
         
-
+        with tqdm(len(manipulated_paths+original_paths)) as bar:
+            for file_path in manipulated_paths:
+                image_path = os.path.join(destination_path, "fake")
+                filename = os.path.basename(file_path)
+                if not os.path.exists(image_path):
+                    os.makedirs(image_path)
+                process_video(file_path, filename, image_path, num_frames, img_size)
+                bar.update()
+            for file_path in original_paths:
+                image_path = os.path.join(destination_path, "real")
+                filename = os.path.basename(file_path)
+                if not os.path.exists(image_path):
+                    os.makedirs(image_path)
+                process_video(file_path, filename, image_path, num_frames, img_size)
+                bar.update()
+                
+def process_df_files(dir_path, num_frames=1, img_size=(224, 224)):
+    if os.path.isdir(dir_path):
+        destination = list()
+        list_ = list()
+        data_set_splits = list()
+        
+        for data_folder in ["train", "val", "test"]:
+            destination_paths = os.path.join("data", data_folder)
+            list_paths = os.path.join("lists", "lists_df_1", "splits", data_folder+".txt")
+            destination.append(destination_paths)
+            list_.append(list_paths)
+        
+        for destination_paths in destination:
+            if not os.path.exists(destination_paths):
+                os.makedirs(destination_paths)
+                
+        for list_dataset in list_:
+            dataset = filter_df_files(dir_path, list_dataset)
+            data_set_splits.append(dataset)
+                
+        for dataset, destination in zip(data_set_splits, destination):
+            if destination == os.path.join("data", "val"):
+                process_df_videos(dataset, destination, num_frames, img_size)
+            else:
+                process_df_videos(dataset, destination, num_frames, img_size)
+                                  
+                
 # access video
 def process_video(video_path, filename, image_path, num_frames, img_size):
     gpu = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -103,13 +225,13 @@ def process_video(video_path, filename, image_path, num_frames, img_size):
     for frame_data in faces:
         for face in frame_data["faces"]:
             face_locations = face_recognition.face_locations(face) #the detected bbox are further cropped
-            img = Image.fromarray(face)
-            img.show()
+            #img = Image.fromarray(face)
+            #img.show()
             for face_location in face_locations:
                 top, right, bottom, left = face_location
                 face_image = face[top:bottom, left:right]
-                img = Image.fromarray(face)
-                img.show()
+                #img = Image.fromarray(face)
+                #img.show()
                 resized_face = cv2.resize(face_image, img_size, interpolation=cv2.INTER_AREA)
                 resized_face = cv2.cvtColor(resized_face, cv2.COLOR_RGB2BGR)
                 
@@ -120,7 +242,7 @@ def process_video(video_path, filename, image_path, num_frames, img_size):
                 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', default="DFDC", type=str, help='Dataset (DFDC / FACEFORENSICS/ Celeb-DF / DF)')
+    parser.add_argument('--dataset', default="DFDC", type=str, help='Dataset (DFDC / FACEFORENSICS/ CELEB-DF / DF)')
     parser.add_argument('--raw_data_path', default='', type=str, help='Raw Videos directory')
     opt = parser.parse_args()
     
@@ -130,7 +252,24 @@ def main():
         preprocess_dfdc_files(opt.raw_data_path)
         end_time = perf_counter()
         print("--- %s seconds ---" % (end_time - start_time))
-
+    elif opt.dataset.upper() == "CELEB-DF":
+        print("Process CELEB-DF data...")
+        start_time = perf_counter()
+        preprocess_celeb_files(opt.raw_data_path)
+        end_time = perf_counter()
+        print("--- %s seconds ---" % (end_time - start_time))
+    elif opt.dataset.upper() == "FACEFORENSICS":
+        print("Process FACEFORENSICS data...")
+        start_time = perf_counter()
+        preprocess_ff_files(opt.raw_data_path)
+        end_time = perf_counter()
+        print("--- %s seconds ---" % (end_time - start_time))
+    elif opt.dataset.upper() == "DF":
+        print("Process DEEPERFORENSICS data...")
+        start_time = perf_counter()
+        process_df_files(opt.raw_data_path)
+        end_time = perf_counter()
+        print("--- %s seconds ---" % (end_time - start_time))
+                       
 if __name__ == "__main__":
-    create_folders("data")
     main()
