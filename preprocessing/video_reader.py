@@ -1,4 +1,4 @@
-# Code from: https://github.com/erprogs/CViT/tree/main, https://github.com/selimsef/dfdc_deepfake_challenge access: 16.06.2023
+# Code from: https://github.com/erprogs/CViT/tree/main, https://github.com/selimsef/dfdc_deepfake_challenge access: 16.06.2023 15:00
 
 import os
 import cv2
@@ -70,6 +70,33 @@ class VideoReader:
         frame_idxs = sorted(np.random.choice(np.arange(0, frame_count), size=num_frames, replace=False))
         result = self._read_frames_at_indices(path, capture, frame_idxs)
 
+        capture.release()
+        return result
+    
+    def read_random_frames_interval(self, path, num_frames, seed=2):
+        """read frames in an interval with random start
+
+        Args:
+            path (str): path to video
+            num_frames (int): number of frames to extract
+            seed (int, optional): random number generator. Defaults to None.
+        """
+        assert num_frames > 0
+        np.random.seed(seed)
+        
+        capture = cv2.VideoCapture(path)
+        frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        if frame_count <= 0:
+            capture.release()
+            return None
+        
+        step = frame_count // num_frames
+        start_offset = np.random.randint(0, step)
+        frame_idxs = np.arange(start_offset, frame_count, step)
+        frame_idxs = np.clip(frame_idxs, 0, frame_count - 1)
+        result = self._read_frames_at_indices(path, capture, frame_idxs)
+        
         capture.release()
         return result
 

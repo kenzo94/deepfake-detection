@@ -1,4 +1,4 @@
-# Code from: https://github.com/erprogs/CViT/tree/main, https://github.com/hollance/BlazeFace-PyTorch access: 16.06.2023
+# Code from: https://github.com/erprogs/CViT/tree/main, https://github.com/hollance/BlazeFace-PyTorch access: 16.06.2023 15:00
 
 import numpy as np
 import torch
