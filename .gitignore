@@ -2,3 +2,7 @@ raw
 data
 __pycache__/
 preprocessing\__pycache__
+models
+hp_op
+saved_models
+tb_logs

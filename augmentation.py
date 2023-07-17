@@ -29,10 +29,6 @@ and lastly adding a sepia filter.“ ([Silva et al., 2022, p. 6] """
  4) Rotation (-30◦ degrees to 30◦), and 5) Horizontal flip (50% probability).“ 
  """
 
-def normalize():
-    return alb.Compose([
-        alb.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-    ])
 
 def get_train_transforms(img_size, p):
     """augment train data
@@ -60,14 +56,13 @@ def get_train_transforms(img_size, p):
     ], p=p
     )
  
-def get_base_transforms(img_size, p):
+def get_base_transforms(img_size):
     """
     augment for val and test data
     """ 
     return alb.Compose([
         alb.Resize(height=img_size, width=img_size),
         alb.PadIfNeeded(min_height=img_size, min_width=img_size, border_mode=cv2.BORDER_CONSTANT),
-        alb.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
     ])
 
 def augment_image(imgs, labels, augmentation_pipeline: alb.Compose):
@@ -97,9 +92,11 @@ def get_tf_dataset(dataset_path: str, augmentation_pipeline: alb.Compose, batch_
         shuffle (bool, optional): _description_. Defaults to True.
 
     Returns:
-        tf.data.Dataset: _description_
+        tf.data.Dataset
     """
-    augmentation_func = partial(augment_image, augmentation_pipeline=augmentation_pipeline,)
+    
+    augmentation_func = partial(augment_image, augmentation_pipeline=augmentation_pipeline)
+    
     AUTOTUNE = tf.data.experimental.AUTOTUNE
     dataset = tf.keras.utils.image_dataset_from_directory(
         dataset_path,
@@ -110,4 +107,6 @@ def get_tf_dataset(dataset_path: str, augmentation_pipeline: alb.Compose, batch_
         seed=seed,
         shuffle=shuffle
     )
-    return dataset.map(augmentation_func, num_parallel_calls=AUTOTUNE).prefetch(AUTOTUNE)
+    augmented_ds = dataset.map(augmentation_func, num_parallel_calls=AUTOTUNE)
+    
+    return augmented_ds.prefetch(AUTOTUNE)

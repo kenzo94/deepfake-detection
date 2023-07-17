@@ -423,4 +423,3 @@ def main():
                        
 if __name__ == "__main__":
     main()
-    #process_video(r"raw\deeperforensics\end_to_end\030_W008.mp4", "030_W008.mp4", r"raw\test", num_frames=35, img_size=(224, 224))
