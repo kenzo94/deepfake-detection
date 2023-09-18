@@ -1,4 +1,4 @@
-# Code from: https://github.com/erprogs/CViT/tree/main, https://github.com/selimsef/dfdc_deepfake_challenge access: 16.06.2023 15:00
+# Code from: https://github.com/erprogs/CViT/tree/main access: 16.06.2023 15:00
 
 import os
 import cv2

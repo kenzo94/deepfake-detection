@@ -156,7 +156,7 @@ def process_df_videos(dataset, destination, num_frames, img_size):
             if not os.path.exists(image_path):
                 os.makedirs(image_path)
             print(f"FAKE path: {video_path} - name: {filename} - destination: {image_path}")
-            process_video(video_path, filename, image_path, num_frames, img_size)
+            process_video(video_path, filename, image_path, num_frames, img_size, seed=42)
             bar.update()
     print("Process Reals")
     print("{cnt} Files to Process".format(cnt=len(dataset["reals"])))
@@ -167,14 +167,14 @@ def process_df_videos(dataset, destination, num_frames, img_size):
             if not os.path.exists(image_path):
                 os.makedirs(image_path)
             print(f"REAL path: {video_path} - name: {filename} - destination: {image_path}")
-            process_video(video_path, filename, image_path, num_frames, img_size)
+            process_video(video_path, filename, image_path, num_frames, img_size, seed=42)
             bar.update()
                 
                 
 def preprocess_dfdc_files(dir_path, num_frames=20, img_size=(224, 224)):
     # iterate over DFDC dataset
     if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_dfdc")
+        destination_path = os.path.join("resources","data", "test_dfdc")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
             
@@ -196,7 +196,7 @@ def preprocess_dfdc_files(dir_path, num_frames=20, img_size=(224, 224)):
 
 def preprocess_celeb_files(dir_path, num_frames=20, img_size=(224, 224)):
      if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_celeb")
+        destination_path = os.path.join("resources","data", "test_celeb")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
         
@@ -219,9 +219,9 @@ def preprocess_celeb_files(dir_path, num_frames=20, img_size=(224, 224)):
                             process_video(file_path, file, image_path, num_frames, img_size)
                         bar.update()
                         
-def preprocess_ff_files(dir_path, num_frames=20, img_size=(224, 224)):
+def preprocess_dfd_files(dir_path, num_frames=20, img_size=(224, 224)):
     if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_ff")
+        destination_path = os.path.join("data", "test_dfd")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
             
@@ -262,7 +262,7 @@ def process_df_files(dir_path, num_frames=50, img_size=(224, 224), skip=False):
         
         for data_folder in ["train", "val", "test"]:
             destination_paths = os.path.join("data", data_folder)
-            list_paths = os.path.join("lists", "lists_df_1", "splits", data_folder+".txt")
+            list_paths = os.path.join("resources","lists", "lists_df_1", "splits", data_folder+".txt")
             destination.append(destination_paths)
             list_.append(list_paths)
         
@@ -388,7 +388,7 @@ def process_video(video_path, filename, image_path, num_frames, img_size, seed):
             
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', default="DFDC", type=str, help='Dataset (DFDC / FACEFORENSICS/ CELEB-DF / DF / DF-REST)')
+    parser.add_argument('--dataset', default="DFDC", type=str, help='Dataset (DFDC / DFD/ CELEB-DF / DF / DF-REST)')
     parser.add_argument('--raw_data_path', default='', type=str, help='Raw Videos directory')
     opt = parser.parse_args()
     
@@ -404,10 +404,10 @@ def main():
         preprocess_celeb_files(opt.raw_data_path)
         end_time = perf_counter()
         print("--- %s seconds ---" % (end_time - start_time))
-    elif opt.dataset.upper() == "FACEFORENSICS":
-        print("Process FACEFORENSICS data...")
+    elif opt.dataset.upper() == "DFD":
+        print("Process DFD data...")
         start_time = perf_counter()
-        preprocess_ff_files(opt.raw_data_path)
+        preprocess_dfd_files(opt.raw_data_path)
         end_time = perf_counter()
         print("--- %s seconds ---" % (end_time - start_time))
     elif opt.dataset.upper() == "DF":

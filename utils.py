@@ -9,7 +9,6 @@ import tensorflow as tf
 from functools import partial
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib import cm
 import matplotlib.pyplot as plt
 from tf_keras_vis.gradcam_plus_plus import GradcamPlusPlus
@@ -17,27 +16,6 @@ from tf_keras_vis.utils.scores import BinaryScore
 from tf_keras_vis.utils.model_modifiers import ReplaceToLinear
 import os, re
 import pandas as pd
-
-#color saturation change (CS), color contrast change
-#(CC), local block-wise (BW), white Gaussian noise in color
-# components (GNC), Gaussian blur (GB) and JPEG compression (JPEG). gewinner der challenge für df
-
-""" „data augmentations: horizontal flip, Gaussian Noise/ISO Noise, blur (motion blur and Gaussian blur), 
-random hue-saturation modification, random brightness, contrast modification, image sharpening and embossing, 
-and lastly adding a sepia filter.“ ([Silva et al., 2022, p. 6] """
-
-""" „1. Gaussian blur 2. Gaussian noise 3. Motion blur 4. Homomorphic filter enhancement 5. Fourier transform (magnitude spectrum)“
- """
- 
-"""  „Second, different random augmentations are applied such as rotation, horizontal and vertical flipping and change of the color attributes of the image.“
- ([Khalil et al., 2021, p. 6](zotero://select/library/items/KM9UEHJT)) """
- 
-"""  „We also applied data augmentation techniques to diversify the training data. We varied the following conditions: 
-     1) Brightness (-30% to 30%), 2) Channel shift (-50 to 50), 
- 3) Zoom“ ([Tariq et al., 2021, p. 8](zotero://select/library/items/XQKI4CP6)) 
- ([pdf](zotero://open-pdf/library/items/WKGGWL33?page=8)) „(-20% to 20%), 
- 4) Rotation (-30◦ degrees to 30◦), and 5) Horizontal flip (50% probability).“ 
- """
 
 
 def get_train_transforms(img_size, p):

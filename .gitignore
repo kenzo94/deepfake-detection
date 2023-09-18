@@ -5,3 +5,4 @@ models
 hp_op
 saved_models
 tb_logs
+resources
