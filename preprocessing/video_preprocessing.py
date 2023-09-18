@@ -221,7 +221,7 @@ def preprocess_celeb_files(dir_path, num_frames=20, img_size=(224, 224)):
                         
 def preprocess_dfd_files(dir_path, num_frames=20, img_size=(224, 224)):
     if os.path.isdir(dir_path):
-        destination_path = os.path.join("data", "test_dfd")
+        destination_path = os.path.join("resources","data", "test_dfd")
         if not os.path.exists(destination_path):
             os.makedirs(destination_path)
             
@@ -261,7 +261,7 @@ def process_df_files(dir_path, num_frames=50, img_size=(224, 224), skip=False):
         data_set_splits = list()
         
         for data_folder in ["train", "val", "test"]:
-            destination_paths = os.path.join("data", data_folder)
+            destination_paths = os.path.join("resources","data", data_folder)
             list_paths = os.path.join("resources","lists", "lists_df_1", "splits", data_folder+".txt")
             destination.append(destination_paths)
             list_.append(list_paths)
